@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Books Carousel</title>
+<style>
+	/* Add this to your CSS */
+	.carousel-wrapper {
+	  width: 100%;
+	  max-width: 100%;
+	  margin: 0 auto;
+	  padding: 0 10px;
+	  box-sizing: border-box;
+}
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+.carousel-container {
+  width: 90%;
+  overflow-x: hidden;
+  display: flex;
+}
+.carousel-inner {
+  display: flex;
+  gap: 10px;
+  transition: transform 0.5s ease-in-out;
+  white-space: nowrap;
+}
+.carousel-item {
+  flex: 0 0 auto;
+  width: 150px;
+  text-align: center;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeIn 0.5s forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.carousel-item p {
+  font-size: 14px;
+  margin: 5px 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+  text-align: left; /* Change to left alignment */
+  line-height: 1.3;
+  max-height: 3.9em; /* Limit to 3 lines of text */
+  overflow: hidden;
+}
+.carousel-item img {
+  width: 100px;
+  height: 150px;
+  object-fit: cover;
+}
+.temp-location {
+  color: #2c5282;
+  font-style: italic;
+  font-size: 11px;
+  margin-top: 5px;
+}
+#prev-btn, #next-btn {
+  background: rgba(44, 82, 130, 0.8); /* Using the blue from your gradient */
+  color: white;
+  border: none;
+  border-radius: 50%; /* Make buttons circular */
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 15px; /* Add space between buttons and carousel */
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+#prev-btn:hover, #next-btn:hover {
+  background: rgba(44, 82, 130, 1);
+  transform: scale(1.1);
+}
+#prev-btn:active, #next-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+#prev-btn:focus, #next-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.4);
+}
+.book-details {
+    font-size: 12px;
+    text-align: left;
+    margin-top: 5px;
+}
+.book-details p {
+    margin: 2px 0;
+}
+.call-number {
+    color: #2c5282;
+    font-weight: bold;
+}
+.location {
+    font-style: italic;
+}
+.isbn {
+    font-size: 11px;
+    color: #666;
+}
+.admin-notes {
+    font-size: 11px;
+    color: #444;
+    font-style: italic;
+}
+#loading-status {
+    width: 100%;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #555;
+}
+.status-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 10;
+}
+
+#floating-status {
+  position: static;
+  display: block;
+  padding: 8px 15px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 5px;
+  max-width: 400px;
+  margin: 0 auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  text-align: center;
+  min-width: 250px;
+}
+.default-cover {
+    width: 100px;
+    height: 150px;
+    background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
+/* Icon at the top of the default cover */
+.book-icon {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 15px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h2v8l2.5-1.5L13 12V4h5v16z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+/* The "No Cover Available" text container */
+.no-cover-text {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+    font-weight: 500;
+    opacity: 0.9;
+    width: 100%;
+    padding: 8px 0;
+    text-align: center;
+}
+
+.default-cover .title {
+    font-weight: bold;
+    font-size: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.default-cover .author {
+    font-style: italic;
+    font-size: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    opacity: 0.8;
+    margin-bottom: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+.skeleton-item {
+  flex: 0 0 auto;
+  width: 150px;
+  text-align: center;
+  animation: fadeIn 0.5s forwards;
+  margin: 0 5px;
+}
+.skeleton-cover {
+  width: 100px;
+  height: 150px;
+  margin: 0 auto;
+  background: #f0f0f0;
+  background-image: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+}
+.skeleton-text {
+  height: 12px;
+  width: 100%;
+  margin: 8px 0;
+  background: #f0f0f0;
+  background-image: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 2px;
+}
+.skeleton-text.short {
+  width: 60%;
+}
+.skeleton-text.medium {
+  width: 75%;
+}
+.skeleton-text.long {
+  width: 90%;
+}
+/* Fade-in effect for items when loaded */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.5s forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* Enhance the month selector appearance */
+#book-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: auto;
+  position: relative;
+  padding: 10px 0;
+}
+.carousel-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+  width: 100%;
+  margin: 0 auto 20px auto;
+}
+@media (max-width: 768px) {
+  #prev-btn, #next-btn {
+    width: 35px;
+    height: 35px;
+    margin: 0 10px;
+    font-size: 16px;
+  }
+}
+.catalog-date {
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+}
+#month-dropdown {
+  margin-left: 10px;
+   padding: 8px 30px 33px 30px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  background-color: white;
+  min-width: 200px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  appearance: none;  /* Remove default dropdown arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 30px;  /* Make room for the custom arrow */
+}
+
+#month-dropdown:hover {
+  border-color: #aaa;  /* Darker border on hover */
+}
+
+#month-dropdown:focus {
+  border-color: #2c5282;  /* Match your blue theme */
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.2);  /* Subtle focus ring */
+}
+
+/* Enhance the month selector container */
+#month-selector {
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#month-selector label {
+  font-weight: b;  /* Slightly bolder text */
+  color: #333;
+}
+#prev-page-btn, #next-page-btn {
+  background: rgba(44, 82, 130, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 5px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#prev-page-btn:hover, #next-page-btn:hover {
+  background: rgba(44, 82, 130, 1);
+  transform: scale(1.1);
+}
+
+#prev-page-btn:active, #next-page-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+/* Add this to your existing CSS */
+.book-item:focus,
+.book-item:focus-visible,
+button:focus,
+button:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: 3px solid #2c7be5;
+  outline-offset: 2px;
+}
+
+/* For Windows high contrast mode */
+@media (forced-colors: active) {
+  .book-item:focus,
+  button:focus,
+  select:focus {
+    outline: 3px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="carousel-wrapper">
+<h1>New Books</h1>
+<div id="month-selector">
+    <label for="month-dropdown">Select Month:</label>
+    <select id="month-dropdown" onchange="changeMonth()"></select>
+</div>
+<div class="status-container">
+  <div id="floating-status" style="display: none;">Loading books...</div>
+</div>
+<div class="carousel-divider"></div>
+<div id="book-carousel">
+  <button id="prev-page-btn" title="Previous Page">&#171;</button>
+  <button id="prev-btn" title="Previous">&#10094;</button>
+  <div class="carousel-container">
+    <div class="carousel-inner"></div>
+  </div>
+  <button id="next-btn" title="Next">&#10095;</button>
+  <button id="next-page-btn" title="Next Page">&#187;</button>
+</div>
+<script>
+// Cache objects
+const coverCache = new Map();
+const instanceCache = new Map();
+const holdingsCache = new Map();
+
+const folioBaseUrl = "https://holycross-okapi.folio.indexdata.com";
+
+// Cache-enabled instance fetching
+async function getCachedInstance(instanceId, folioToken) {
+	if (instanceCache.has(instanceId)) {
+        return instanceCache.get(instanceId);
+    }
+    
+    try {
+        const response = await fetch(`${folioBaseUrl}/instance-storage/instances/${instanceId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                "X-Okapi-Tenant": "holycross",
+                "Authorization": `Bearer ${folioToken}`
+            }
+        });
+        
+        if (!response.ok) return null;
+        const data = await response.json();
+        instanceCache.set(instanceId, data);
+        return data;
+    } catch (error) {
+		console.error(`Error fetching instance ${instanceId}:`, error);
+		        // Return null instead of throwing
+		        return null;
+    }
+}
+
+// Cache-enabled holdings fetching
+async function getCachedHoldings(holdingsId, folioToken) {
+    if (holdingsCache.has(holdingsId)) {
+        return holdingsCache.get(holdingsId);
+    }
+    
+    try {
+        const response = await fetch(`${folioBaseUrl}/holdings-storage/holdings/${holdingsId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                "X-Okapi-Tenant": "holycross",
+                "Authorization": `Bearer ${folioToken}`
+            }
+        });
+        
+        if (!response.ok) return null;
+        const data = await response.json();
+        holdingsCache.set(holdingsId, data);
+        return data;
+    } catch (error) {
+        console.error("Error fetching holdings:", error);
+        return null;
+    }
+}
+
+// Helper function to check if an image exists
+async function checkImageExists(url) {
+    return new Promise((resolve) => {
+        if (!url) return resolve(false);
+        
+        // Add a random parameter to avoid caching issues
+        const nocacheUrl = url.includes('?') ? 
+            `${url}&nocache=${Date.now()}` : 
+            `${url}?nocache=${Date.now()}`;
+        
+        const img = new Image();
+        img.onload = () => {
+            // Check if the image is a real image and not an empty/error placeholder
+            if (img.width > 5 && img.height > 5) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        };
+        img.onerror = () => resolve(false);
+        img.src = nocacheUrl;
+        
+        // Also set a timeout just in case
+        setTimeout(() => resolve(false), 3000);
+    });
+}
+
+// Get book cover
+async function getBookCover(identifiers, oclc, recordid, callnumber, title, author) {
+    console.log(`Checking cover for: ${title}`);
+
+    // Step 1: Extract ISBNs from identifiers array
+    // The issue is here - identifiers is likely not an array with identifierTypeId properties
+    // We need to ensure we're working with a proper array and filter correctly
+    let isbnList = [];
+    
+    if (Array.isArray(identifiers)) {
+        isbnList = identifiers
+            .filter(id => id.identifierTypeId === "8261054f-be78-422d-bd51-4ed9f33c3422")
+            .map(id => id.value.trim())
+            .filter(isbn => isbn.length > 0);
+    }
+    
+    console.log(`Extracted ISBNs for VuFind URL: ${isbnList.join(", ")}`);
+
+    // Ensure title contains only the actual book title
+    let cleanedTitle = title.split(" / ")[0]; // Remove anything after ' / '
+
+    // Step 2: Try Google Books API first
+    if (isbnList.length > 0) {
+        const googleUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbnList[0]}`;
+        console.log(`Google Books URL: ${googleUrl}`);
+
+        try {
+            const response = await fetch(googleUrl);
+            const data = await response.json();
+            const coverUrl = data.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+
+            if (coverUrl) {
+                console.log(`Google Books cover found: ${coverUrl}`);
+                return coverUrl.replace('http:', 'https:'); // Ensure HTTPS
+            } else {
+                console.log("Google Books did not return a valid cover.");
+            }
+        } catch (error) {
+            console.error("Google Books API error:", error);
+        }
+    }
+
+    // Step 3: Fallback to VuFind with ALL ISBNs extracted
+    if (recordid) {
+        const encodedAuthor = encodeURIComponent(author || "").replace(/%20/g, "+");
+        const encodedCallNumber = encodeURIComponent(callnumber || "").replace(/%20/g, "+");
+        const encodedTitle = encodeURIComponent(cleanedTitle || "").replace(/%20/g, "+");
+
+        // Construct VuFind ISBN parameters
+        let isbnParams = isbnList.map((isbn, index) => `&isbns%5B${index}%5D=${isbn}`).join("");
+
+        // Assemble VuFind cover URL
+        const vufindUrl = `https://library.holycross.edu/Cover/Show?author=${encodedAuthor}&callnumber=${encodedCallNumber}&size=medium&title=${encodedTitle}&recordid=${recordid}&source=Solr${isbnParams}&oclc=${oclc}`;
+
+        console.log(`Generated VuFind URL: ${vufindUrl}`); // Log the updated VuFind URL
+
+        // Check if VuFind has a valid image
+        if (await checkImageExists(vufindUrl)) {
+            console.log(`VuFind cover found: ${vufindUrl}`);
+            return vufindUrl;
+        } else {
+            console.log("VuFind did not return a valid cover.");
+        }
+    }
+
+    // No cover found
+    console.log(`No cover found for: ${title}`);
+    return null;
+}
+
+// Format book data from FOLIO
+async function formatBookData(item) {
+            console.log("formatBookData received instance catalogedDate:", item.title,item.catalogedDate);
+	
+	// First, properly extract identifiers from the item
+    let isbnList = [];
+    
+    // Check if identifiers exists and is an array
+    if (item.identifiers && Array.isArray(item.identifiers)) {
+        // Directly extract ISBN identifiers (type 8261054f-be78-422d-bd51-4ed9f33c3422)
+        isbnList = item.identifiers
+            .filter(id => id.identifierTypeId === "8261054f-be78-422d-bd51-4ed9f33c3422")
+            .map(id => id.value.trim())
+            .filter(isbn => isbn.length > 0);
+            
+        // Process ISBNs further if needed - remove non-digits except X
+        isbnList = isbnList.map(isbn => isbn.replace(/[^0-9Xx]/g, ''));
+    }
+    
+    // Extract OCLC number
+    let oclc = "";
+    if (item.identifiers && Array.isArray(item.identifiers)) {
+        const oclcIdentifier = item.identifiers.find(id => 
+            id.identifierTypeId === "439bfbae-75bc-4f74-9fc7-b2a2d47ce3ef");
+        if (oclcIdentifier) {
+            oclc = oclcIdentifier.value.replace(/\D/g, '');
+        }
+    }
+    
+    const recordid = item.instanceHrid;
+    const title = item.title || item.indexTitle || "Untitled";
+    const author = item.contributorNames?.[0]?.name || item.contributors?.[0]?.name || "";
+    const callnumber = item.callNumber || item.effectiveCallNumberComponents?.callNumber || "";
+    
+    // Get administrative notes and ensure it's an array
+    const notes = Array.isArray(item.administrativeNotes) ? item.administrativeNotes : [];
+    const administrativeNotes = notes.join("\n");
+    
+    // Get location from effectiveLocation
+    const location = item.effectiveLocation?.name || "";
+    
+    const coverUrl = await getBookCover(item.identifiers || [], oclc, recordid, callnumber, title, author);
+    
+	// Extract cataloged date from the instance data
+	const catalogedDate = item.catalogedDate || '';
+
+	// Format the date nicely if it exists
+	let formattedDate = '';
+	if (catalogedDate) {
+	    // Option 1: Force UTC interpretation (recommended)
+	    const [year, month, day] = catalogedDate.split('T')[0].split('-').map(num => parseInt(num, 10));
+	    const dateObj = new Date(Date.UTC(year, month - 1, day));
+    
+	    formattedDate = dateObj.toLocaleDateString('en-US', { 
+	        year: 'numeric', 
+	        month: 'long', 
+	        day: 'numeric',
+	        timeZone: 'UTC' // Ensure date is formatted in UTC
+	    });
+	    console.log(`Book: ${item.title} - Formatted date: ${formattedDate}`);
+		
+    }
+	
+    return {
+        title,
+        author,
+        isbnList,
+        oclc,
+        callnumber,
+        coverUrl,
+        bookLink: `https://library.holycross.edu/Record/${recordid}`,
+        administrativeNotes,
+        location,
+		catalogedDate: formattedDate  // Add the formatted date to your returned object
+    };
+}
+
+// Lazy load images
+function lazyLoadImage(imgElement, src) {
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    imgElement.src = src;
+                    observer.unobserve(imgElement);
+                }
+            });
+        });
+        observer.observe(imgElement);
+    } else {
+        // Fallback for browsers that don't support IntersectionObserver
+        imgElement.src = src;
+    }
+}
+
+
+// Function to create book element
+function createBookElement(formattedBook) {	
+	const bookDiv = document.createElement("div");
+    bookDiv.className = "carousel-item";
+    
+    const bookLink = document.createElement("a");
+    bookLink.href = formattedBook.bookLink;
+    bookLink.target = "_blank";
+    
+    // Create default cover with book title
+    const defaultCover = document.createElement("div");
+    defaultCover.className = "default-cover";
+    
+    // Add a book icon at the top
+    const bookIconDiv = document.createElement("div");
+    bookIconDiv.className = "book-icon";
+    defaultCover.appendChild(bookIconDiv);
+    
+    // Add the "No Cover Available" text with line break
+    const noCoverDiv = document.createElement("div");
+    noCoverDiv.className = "no-cover-text";
+    noCoverDiv.innerHTML = "No Cover<br>Available";
+    defaultCover.appendChild(noCoverDiv);
+    
+    // Add the default cover to the link first
+    bookLink.appendChild(defaultCover);
+    
+    // If there's a cover URL, create an image that will replace the default cover when loaded
+    if (formattedBook.coverUrl) {
+        const bookImg = new Image();
+        bookImg.alt = formattedBook.title;
+        bookImg.style.display = "none"; // Hide initially
+        bookImg.style.width = "100px";
+        bookImg.style.height = "150px";
+        bookImg.style.objectFit = "cover";
+        
+        // Add the image to the link right away, but keep it hidden
+        bookLink.appendChild(bookImg);
+        
+        bookImg.onload = function() {
+            // If the image loaded successfully and isn't just a tiny placeholder
+            if (bookImg.naturalWidth > 20 && bookImg.naturalHeight > 20) {
+                // Hide the default cover and show the image
+                defaultCover.style.display = "none";
+                bookImg.style.display = "block";
+            }
+        };
+        
+        bookImg.onerror = function() {
+            // If image fails to load, keep the default cover visible
+            bookImg.remove();
+        };
+        
+        // Start loading the image after everything is set up
+        bookImg.src = formattedBook.coverUrl;
+    }
+    
+    const titleP = document.createElement("p");
+        
+	// Get only the part of the title before the '/' character
+	let displayTitle = formattedBook.title;
+	if (displayTitle.includes(' / ')) {
+	    displayTitle = displayTitle.split(' / ')[0].trim();
+	}
+
+	// Set the title text to the shortened version
+	titleP.textContent = displayTitle;	
+	
+    const detailsDiv = document.createElement("div");
+    detailsDiv.className = "book-details";
+    
+    if (formattedBook.location) {
+        const locationP = document.createElement("p");
+        locationP.className = "location";
+        locationP.textContent = `${formattedBook.location}`;
+        detailsDiv.appendChild(locationP);
+    }
+	
+    if (formattedBook.callnumber) {
+        const callNumberP = document.createElement("p");
+        callNumberP.className = "call-number";
+        callNumberP.textContent = `${formattedBook.callnumber}`;
+        detailsDiv.appendChild(callNumberP);
+    }
+/*    
+    if (formattedBook.isbnList && formattedBook.isbnList.length > 0) {
+        const isbnP = document.createElement("p");
+        isbnP.className = "isbn";
+        isbnP.textContent = `ISBN: ${formattedBook.isbnList[0]}`;
+        detailsDiv.appendChild(isbnP);
+    }
+    
+    if (formattedBook.administrativeNotes) {
+        const notesP = document.createElement("p");
+        notesP.className = "admin-notes";
+        notesP.textContent = formattedBook.administrativeNotes;
+        detailsDiv.appendChild(notesP);
+    }*/
+    
+  // Modify image creation to support lazy loading
+    const img = document.createElement('img');
+    img.alt = `Book cover for ${formattedBook.title}`;
+  
+    // Instead of setting src directly, use data-src for lazy loading
+    img.dataset.src = formattedBook.coverUrl || 'default-cover.jpg';
+    // Show a placeholder until the real image loads
+    img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="150" viewBox="0 0 100 150"%3E%3Crect width="100%25" height="100%25" fill="%23f0f0f0"/%3E%3C/svg%3E';
+  
+	
+	if (formattedBook.catalogedDate) {
+	    const catalogDateP = document.createElement("p");
+	    catalogDateP.className = "catalog-date";
+	    catalogDateP.textContent = `Added: ${formattedBook.catalogedDate}`;
+	    detailsDiv.appendChild(catalogDateP);
+	} 
+	
+    bookDiv.appendChild(bookLink);
+    bookDiv.appendChild(titleP);
+    bookDiv.appendChild(detailsDiv);
+    
+    return bookDiv;
+}
+
+// Get current newbooks code based on date
+function getCurrentNewBooksCode(offset = 0) {
+    const today = new Date();
+    today.setMonth(today.getMonth() - offset); // Offset to show past months
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Ensure two-digit format
+    const year = today.getFullYear();
+    return `newbooks-${month}-${year}`;
+}
+
+// Fixed function to fetch items for a month
+async function fetchAllItemsForMonth(month, folioToken) {
+    const limit = 100;
+    let offset = 0;
+    let allItems = [];
+    let hasMore = true;
+    
+    while (hasMore) {
+        const url = `${folioBaseUrl}/inventory/items?limit=${limit}&offset=${offset}&query=administrativeNotes="${month}"`;
+        console.log(`Fetching page for ${month}, offset: ${offset}, limit: ${limit}`);
+        
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Okapi-Tenant": "holycross",
+                    "Authorization": `Bearer ${folioToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                console.warn(`Failed to fetch month ${month} page, status: ${response.status}`);
+                break;
+            }
+            
+            const data = await response.json();
+            const items = data.items || [];
+            console.log(`Fetched ${items.length} items for ${month}, page offset ${offset}`);
+            allItems = [...allItems, ...items];
+            
+            // Check if we've received fewer items than the limit, which means we're done
+            if (!items.length || items.length < limit) {
+                hasMore = false;
+            } else {
+                offset += limit;
+            }
+        } catch (error) {
+			console.error(`Error fetching items for month ${month}:`, error);
+			        // Return empty array instead of throwing to allow partial results
+			return [];
+        }
+    }
+    
+    console.log(`Total items collected for ${month}: ${allItems.length}`);
+    return allItems;
+}
+
+// Main function to load the carousel with books
+function createSkeletonItem() {
+  const skeletonDiv = document.createElement("div");
+  skeletonDiv.className = "skeleton-item";
+  
+  const skeletonCover = document.createElement("div");
+  skeletonCover.className = "skeleton-cover";
+  
+  const titleSkeleton = document.createElement("div");
+  titleSkeleton.className = "skeleton-text medium";
+  
+  const callNumberSkeleton = document.createElement("div");
+  callNumberSkeleton.className = "skeleton-text long";
+  
+  const locationSkeleton = document.createElement("div");
+  locationSkeleton.className = "skeleton-text short";
+  
+  skeletonDiv.appendChild(skeletonCover);
+  skeletonDiv.appendChild(titleSkeleton);
+  skeletonDiv.appendChild(callNumberSkeleton);
+  skeletonDiv.appendChild(locationSkeleton);
+  
+  return skeletonDiv;
+}
+
+// Function to show skeleton loaders
+function showSkeletonLoaders(count = 10) {
+  const carouselInner = document.querySelector(".carousel-inner");
+  carouselInner.innerHTML = ""; // Clear existing content
+  
+  for (let i = 0; i < count; i++) {
+    const skeletonItem = createSkeletonItem();
+    carouselInner.appendChild(skeletonItem);
+  }
+}
+
+// Function to make carousel accessible
+function makeCarouselAccessible() {
+  // Add region role and label to the carousel wrapper
+  const carouselWrapper = document.querySelector(".carousel-wrapper");
+  carouselWrapper.setAttribute("role", "region");
+  carouselWrapper.setAttribute("aria-label", "New Books Carousel");
+
+  // Add proper labels to navigation buttons
+  const prevBtn = document.getElementById("prev-btn");
+  prevBtn.setAttribute("aria-label", "Show previous book");
+
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.setAttribute("aria-label", "Show next book");
+
+  const prevPageBtn = document.getElementById("prev-page-btn");
+  prevPageBtn.setAttribute("aria-label", "Show previous page of books");
+
+  const nextPageBtn = document.getElementById("next-page-btn");
+  nextPageBtn.setAttribute("aria-label", "Show next page of books");
+}
+
+// Main loading function - updated to enhance items before sorting
+async function loadCarousel(selectedMonth = 'all') {
+	// Add this function after your other function definitions but before document.addEventListener("DOMContentLoaded",...)
+	
+	let floatingStatus = document.getElementById("floating-status");
+    if (!floatingStatus) {
+        // If it doesn't exist for some reason, create it in the status container
+        const statusContainer = document.querySelector(".status-container");
+        if (!statusContainer) {
+            // Create the container if it doesn't exist
+            const newContainer = document.createElement("div");
+            newContainer.className = "status-container";
+            document.getElementById("book-carousel").after(newContainer);
+            
+            floatingStatus = document.createElement("div");
+            floatingStatus.id = "floating-status";
+            newContainer.appendChild(floatingStatus);
+        } else {
+            floatingStatus = document.createElement("div");
+            floatingStatus.id = "floating-status";
+            statusContainer.appendChild(floatingStatus);
+        }
+    }
+    
+    updateLoadingStatus("Loading books...");
+    floatingStatus.style.display = "block";
+    
+    const carouselInner = document.querySelector(".carousel-inner");
+    
+    // Show skeleton loaders first
+    showSkeletonLoaders(12);
+    
+    try {
+        // Get token first from serverless function
+        updateLoadingStatus("Connecting to library...");
+        console.log('Fetching token...');
+        const tokenResponse = await fetch(`https://silly-cat-7c831c.netlify.app/.netlify/functions/books`);
+        if (!tokenResponse.ok) throw new Error(`Token request failed: ${tokenResponse.status}`);
+        const tokenData = await tokenResponse.json();
+        const folioToken = tokenData.token;
+        console.log('Token received successfully');
+        
+        let allBooks = [];
+        updateLoadingStatus("Fetching books...");
+        
+        if (selectedMonth === 'all') {
+            // Use Promise.all to fetch multiple months in parallel
+            const months = Array.from({length: 3}, (_, i) => getCurrentNewBooksCode(i)); // Limit to 3 most recent months
+            updateLoadingStatus("Fetching books from recent months...");
+            const monthlyResults = await Promise.all(
+                months.map(month => fetchAllItemsForMonth(month, folioToken))
+            );
+            allBooks = monthlyResults.flat();
+        } else {
+            updateLoadingStatus(`Fetching books for ${selectedMonth}...`);
+            allBooks = await fetchAllItemsForMonth(selectedMonth, folioToken);
+        }
+        
+        // Enhance all book items with instance data BEFORE sorting
+        updateLoadingStatus("Processing book data...");
+        const enhancedBooks = [];
+        
+        // Process in smaller batches to avoid blocking the UI
+        const batchSize = 20;
+        for (let i = 0; i < allBooks.length; i += batchSize) {
+            const batch = allBooks.slice(i, i + batchSize);
+            const enhancedBatch = await Promise.all(batch.map(async (item) => {
+                if (!item.holdingsRecordId) return null;
+                
+                try {
+                    const holdingsData = await getCachedHoldings(item.holdingsRecordId, folioToken);
+                    if (!holdingsData || !holdingsData.instanceId) return null;
+                    
+					// Debug Console Log - First Place catalogedDate is fetched
+                    const instanceData = await getCachedInstance(holdingsData.instanceId, folioToken);
+                    if (!instanceData) return null;
+					console.log("Instance data retrieved:", {
+					    title: instanceData.title,
+					    hrid: instanceData.hrid,
+					    id: holdingsData.instanceId,
+					    catalogedDate: instanceData.catalogedDate,
+					    dateAsObject: instanceData.catalogedDate ? new Date(instanceData.catalogedDate) : null});
+					
+                    // Create enhanced item with all needed data
+					return {
+                        ...item,
+                        instanceHrid: instanceData.hrid,
+                        identifiers: instanceData.identifiers,
+                        indexTitle: instanceData.indexTitle,
+                        contributors: instanceData.contributors,
+                        callNumber: holdingsData.callNumber,
+                        catalogedDate: instanceData.catalogedDate
+                    };
+
+                } catch (error) {
+                    console.error("Error enhancing book data:", error);
+                    return null;
+                }
+            }));
+            
+            // Add valid items to the result array
+            enhancedBooks.push(...enhancedBatch.filter(item => item !== null));
+            
+            // Update status
+            updateLoadingStatus(`Processed ${enhancedBooks.length} of ${allBooks.length} books...`);
+            
+            // Allow UI to update
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        
+        // Now sort the fully enhanced books
+        const sortedItems = enhancedBooks.sort((a, b) => {
+            // First sort by administrative notes
+            const getNewBooksNote = (item) => {
+                if (!item.administrativeNotes || !Array.isArray(item.administrativeNotes)) return '';
+                const newBooksNote = item.administrativeNotes.find(note =>
+                    typeof note === 'string' && note.match(/^newbooks-\d{2}-\d{4}$/));
+                return newBooksNote || '';
+            };
+            
+            const aNote = getNewBooksNote(a);
+            const bNote = getNewBooksNote(b);
+            
+            // First comparison by notes
+            if (aNote !== bNote) {
+                return bNote.localeCompare(aNote);
+            }
+            
+            // Now for date comparison
+            const aDateStr = a.catalogedDate || '';
+            const bDateStr = b.catalogedDate || '';
+            
+            // If either is missing, handle accordingly
+            if (!aDateStr && !bDateStr) return 0;
+            if (!aDateStr) return 1; // a should come after b
+            if (!bDateStr) return -1; // b should come after a
+            
+            // Convert to Date objects only if strings are present
+            try {
+                const aDate = new Date(aDateStr);
+                const bDate = new Date(bDateStr);
+                
+                // Check if both dates are valid
+                if (isNaN(aDate.getTime()) || isNaN(bDate.getTime())) {
+                    console.log("Invalid date detected during sort:", aDateStr, bDateStr);
+                    return bDateStr.localeCompare(aDateStr); // Fall back to string comparison
+                }
+                
+                // Return the comparison (newest first)
+                return bDate.getTime() - aDate.getTime();
+            } catch (e) {
+                console.error("Error comparing dates:", e);
+                return 0; // Default to no change in order if error
+            }
+        });
+        
+        if (sortedItems.length === 0) {
+            carouselInner.innerHTML = "<p>No books found for this selection.</p>";
+            floatingStatus.style.display = "none";
+            return;
+        }
+        
+		// Limit to 200 books for better performance
+		const limitedBooks = sortedItems.slice(0, 200);
+        
+		// Clear skeleton loaders
+		carouselInner.innerHTML = "";
+
+		// Hide status
+		updateLoadingStatus("Books loaded successfully");
+		if (floatingStatus) {
+		    floatingStatus.style.display = "none";
+		}
+
+		// Create book elements one by one with a smooth fade-in
+		for (let i = 0; i < limitedBooks.length; i++) {
+		    const formattedBook = await formatBookData(limitedBooks[i]);
+		    if (formattedBook) {
+				const bookDiv = createBookElement(formattedBook);
+		        bookDiv.style.opacity = '0';
+		        carouselInner.appendChild(bookDiv);
+        
+		        // Trigger fade-in
+		        setTimeout(() => {
+		            bookDiv.style.transition = 'opacity 0.5s ease';
+		            bookDiv.style.opacity = '1';
+		        }, 30 * i); // Slight delay between each one
+		    }
+    
+		    // Brief pause every 10 books to allow UI to update
+		    if (i % 10 === 0) {
+		        await new Promise(resolve => setTimeout(resolve, 10));
+		    }
+		}
+		//Accessibility functions
+        makeCarouselAccessible(); 
+		setupKeyboardNavigation();
+	    setupScreenReaderSupport();
+		setupPreferenceSupport();
+		setupPerformanceOptimizations();
+		setupFocusManagement();
+		setupDynamicContentAwareness();
+		setupMotionControls();
+		addAlternativeNavigation();
+		   
+    } catch (error) {
+        handleCarouselError(error, carouselInner, floatingStatus);
+        
+    }
+}
+
+CODE REVIEW UP TO THIS POINT
+
+// Add this function outside other functions
+function setupFocusManagement() {
+  const carousel = document.querySelector(".carousel-container");
+  const carouselItems = document.querySelectorAll(".carousel-item a");
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
+  
+  // Track the last focused element within the carousel
+  let lastFocusedElement = null;
+  
+  // Helper function to get the currently visible carousel items
+  function getVisibleItems() {
+    return Array.from(carouselItems).filter(item => {
+      const rect = item.getBoundingClientRect();
+      const containerRect = carousel.getBoundingClientRect();
+      return rect.left >= containerRect.left - rect.width/2 && 
+             rect.right <= containerRect.right + rect.width/2;
+    });
+  }
+  
+  // Save the last focused element within the carousel
+  carousel.addEventListener('focusin', (e) => {
+    if (carouselItems.contains(e.target) || e.target === prevBtn || e.target === nextBtn) {
+      lastFocusedElement = e.target;
+    }
+  });
+  
+  // Restore focus when navigating
+  prevBtn.addEventListener('click', () => {
+    setTimeout(() => {
+      const visibleItems = getVisibleItems();
+      if (visibleItems.length > 0) {
+        // Focus on the first visible item after navigation
+        visibleItems[0].focus();
+      }
+    }, 100); // Short delay to allow scrolling to complete
+  });
+  
+  nextBtn.addEventListener('click', () => {
+    setTimeout(() => {
+      const visibleItems = getVisibleItems();
+      if (visibleItems.length > 0) {
+        // Focus on the first visible item after navigation
+        visibleItems[0].focus();
+      }
+    }, 100);
+  });
+  
+  // Add keyboard shortcut to exit carousel
+  carousel.addEventListener('keydown', (e) => {
+    // Allow Escape key to exit the carousel
+    if (e.key === 'Escape') {
+      // Focus on month selector when escaping from carousel
+      const monthDropdown = document.getElementById("month-dropdown");
+      if (monthDropdown) {
+        monthDropdown.focus();
+      }
+    }
+  });
+}
+
+// Update your status container with proper ARIA attributes
+function setupDynamicContentAwareness() {
+  // Get or create the status container
+  const statusContainer = document.querySelector(".status-container");
+  const floatingStatus = document.getElementById("floating-status");
+  
+  if (floatingStatus) {
+    // Set up as a live region
+    floatingStatus.setAttribute("aria-live", "polite");
+    floatingStatus.setAttribute("aria-atomic", "true");
+  }
+  
+  // Set carousel inner as having busy state
+  const carouselInner = document.querySelector(".carousel-inner");
+  if (carouselInner) {
+    carouselInner.setAttribute("aria-busy", "false");
+  }
+  
+  // Update showSkeletonLoaders to indicate busy state
+  window.originalShowSkeletonLoaders = window.showSkeletonLoaders;
+  window.showSkeletonLoaders = function(count) {
+    if (carouselInner) {
+      carouselInner.setAttribute("aria-busy", "true");
+    }
+    if (window.originalShowSkeletonLoaders) {
+      window.originalShowSkeletonLoaders(count);
+    }
+  };
+}
+
+// Add this function to handle motion preferences
+function setupMotionControls() {
+  // Check for reduced motion preference
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  
+  function handleMotionPreference() {
+    const carouselContainer = document.querySelector(".carousel-container");
+    
+    // Apply appropriate scrolling behavior
+    if (carouselContainer) {
+      carouselContainer.style.scrollBehavior = mediaQuery.matches ? "auto" : "smooth";
+    }
+    
+    // Control fade-in animations
+    const style = document.createElement("style");
+    if (mediaQuery.matches) {
+      style.textContent = `
+        .carousel-item {
+          opacity: 1 !important;
+          transition: none !important;
+        }
+        @keyframes fadeIn { from { opacity: 1; } to { opacity: 1; } }
+      `;
+    } else {
+      style.textContent = "";  // Remove any previously added styles
+    }
+    
+    // Replace any existing motion control style
+    const existingStyle = document.getElementById("motion-control-style");
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    style.id = "motion-control-style";
+    document.head.appendChild(style);
+  }
+  
+  // Set initial state
+  handleMotionPreference();
+  
+  // Listen for changes
+  mediaQuery.addEventListener("change", handleMotionPreference);
+}
+
+// Add this function to provide alternative navigation
+function addAlternativeNavigation() {
+  // Create a "View All" button
+  const viewAllBtn = document.createElement("button");
+  viewAllBtn.id = "view-all-btn";
+  viewAllBtn.className = "view-all-btn";
+  viewAllBtn.textContent = "View as List";
+  viewAllBtn.setAttribute("aria-label", "View all books as a list");
+  
+  // Add toggle functionality
+  let isListView = false;
+  viewAllBtn.addEventListener("click", () => {
+    const carouselWrapper = document.querySelector(".carousel-wrapper");
+    const carouselContainer = document.querySelector(".carousel-container");
+    const carouselItems = document.querySelectorAll(".carousel-item");
+    
+    isListView = !isListView;
+    
+    if (isListView) {
+      // Switch to list view
+      viewAllBtn.textContent = "View as Carousel";
+      carouselWrapper.classList.add("list-view-mode");
+      carouselContainer.style.overflowX = "visible";
+      carouselContainer.style.flexWrap = "wrap";
+      
+      // Hide navigation buttons
+      document.getElementById("prev-btn").style.display = "none";
+      document.getElementById("next-btn").style.display = "none";
+      document.getElementById("prev-page-btn").style.display = "none";
+      document.getElementById("next-page-btn").style.display = "none";
+      
+      announceToScreenReader("Switched to list view. All books are now displayed on the page.");
+    } else {
+      // Switch back to carousel view
+      viewAllBtn.textContent = "View as List";
+      carouselWrapper.classList.remove("list-view-mode");
+      carouselContainer.style.overflowX = "hidden";
+      carouselContainer.style.flexWrap = "nowrap";
+      
+      // Show navigation buttons
+      document.getElementById("prev-btn").style.display = "flex";
+      document.getElementById("next-btn").style.display = "flex";
+      document.getElementById("prev-page-btn").style.display = "flex";
+      document.getElementById("next-page-btn").style.display = "flex";
+      
+      announceToScreenReader("Switched back to carousel view.");
+    }
+  });
+  
+  // Add the button to the page
+  const monthSelector = document.getElementById("month-selector");
+  if (monthSelector) {
+    monthSelector.appendChild(viewAllBtn);
+  }
+  
+  // Add list view styles
+  const style = document.createElement("style");
+  style.textContent = `
+    .view-all-btn {
+      margin-left: 20px;
+      padding: 5px 10px;
+      background: rgba(44, 82, 130, 0.8);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .view-all-btn:hover {
+      background: rgba(44, 82, 130, 1);
+    }
+    
+    .list-view-mode .carousel-container {
+      height: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+    
+    .list-view-mode .carousel-item {
+      margin: 10px;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function setupPreferenceSupport() {
+  // Check for reduced motion preference
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  
+  // Handler function for motion preference changes
+  function handleMotionPreference() {
+    // Elements that use animations
+    const bookItems = document.querySelectorAll(".book-item");
+    const carouselContainer = document.querySelector(".carousel-container");
+    
+    if (mediaQuery.matches) {
+      // Disable animations for users who prefer reduced motion
+      bookItems.forEach(item => {
+        item.style.transition = "none"; // Remove transitions
+      });
+      
+      if (carouselContainer) {
+        carouselContainer.style.scrollBehavior = "auto"; // Disable smooth scrolling
+      }
+      
+      // Stop any ongoing animations
+      const allAnimatingElements = document.querySelectorAll("[style*='transition']");
+      allAnimatingElements.forEach(el => {
+        el.style.transition = "none";
+      });
+    } else {
+      // Re-enable animations for users who don't mind motion
+      bookItems.forEach(item => {
+        item.style.transition = "opacity 0.5s ease"; 
+      });
+      
+      if (carouselContainer) {
+        carouselContainer.style.scrollBehavior = "smooth";
+      }
+    }
+  }
+  
+  // Run once to set initial state
+  handleMotionPreference();
+  
+  // Listen for changes in preference
+  mediaQuery.addEventListener("change", handleMotionPreference);
+  
+  // Add responsive font size handling
+  function handleFontSize() {
+    // Check if the viewport is small
+    const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
+    
+    // Adjust font sizes based on screen size
+    document.querySelectorAll(".book-title").forEach(title => {
+      title.style.fontSize = isSmallScreen ? "0.9rem" : "1rem";
+    });
+    
+    document.querySelectorAll(".book-author").forEach(author => {
+      author.style.fontSize = isSmallScreen ? "0.8rem" : "0.9rem";
+    });
+  }
+  
+  // Run once for initial sizing
+  handleFontSize();
+  
+  // Update on window resize
+  window.addEventListener("resize", handleFontSize);
+}
+
+// Move carousel when buttons are clicked
+function moveCarousel(step) {
+    const container = document.querySelector(".carousel-container");
+    const scrollAmount = 160 * step;
+    container.scrollLeft += scrollAmount;
+}
+
+document.getElementById("prev-btn").addEventListener("click", () => moveCarousel(-1));
+document.getElementById("next-btn").addEventListener("click", () => moveCarousel(1));
+document.getElementById("prev-page-btn").addEventListener("click", () => moveCarouselPage(-1));
+document.getElementById("next-page-btn").addEventListener("click", () => moveCarouselPage(1));
+
+// Add this function to your code (outside any existing functions)
+function setupKeyboardNavigation() {
+  // Get navigation buttons
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
+  const prevPageBtn = document.getElementById("prev-page-btn");
+  const nextPageBtn = document.getElementById("next-page-btn");
+  const monthDropdown = document.getElementById("month-dropdown");
+  
+  // Add keyboard listener for navigation when carousel has focus
+  document.querySelector(".carousel-container").addEventListener("keydown", (e) => {
+    // Navigate with arrow keys
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      prevBtn.click();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      nextBtn.click();
+    }
+  });
+  
+  // Make all book elements focusable
+  document.querySelectorAll(".book-item").forEach((book, index) => {
+    // Add tabindex to make books focusable in order
+    book.setAttribute("tabindex", "0");
+    
+    // Add keyboard handler for focused books
+    book.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        // Trigger the book's link when Enter or Space is pressed
+        e.preventDefault();
+        const bookLink = book.querySelector("a");
+        if (bookLink) bookLink.click();
+      }
+    });
+  });
+  
+  // Ensure navigation buttons have proper tabindex
+  [prevBtn, nextBtn, prevPageBtn, nextPageBtn].forEach(btn => {
+    if (btn) {
+      btn.setAttribute("tabindex", "0");
+    }
+  });
+}
+
+// Add this function outside any existing functions
+function setupScreenReaderSupport() {
+  // Create a live region for status announcements
+  const liveRegion = document.getElementById("screen-reader-announcer") || 
+    document.createElement("div");
+    
+  // If it doesn't exist yet, set it up
+  if (!liveRegion.id) {
+    liveRegion.id = "screen-reader-announcer";
+    liveRegion.setAttribute("aria-live", "polite");
+    liveRegion.setAttribute("aria-atomic", "true");
+    liveRegion.style.position = "absolute";
+    liveRegion.style.width = "1px";
+    liveRegion.style.height = "1px";
+    liveRegion.style.padding = "0";
+    liveRegion.style.overflow = "hidden";
+    liveRegion.style.clip = "rect(0, 0, 0, 0)";
+    liveRegion.style.whiteSpace = "nowrap";
+    liveRegion.style.border = "0";
+    document.body.appendChild(liveRegion);
+  }
+  
+  // Add proper role to book items
+  document.querySelectorAll(".carousel-item").forEach(item => {
+    item.setAttribute("role", "listitem");
+  });
+  
+  // Set the carousel inner container as a list
+  const carouselInner = document.querySelector(".carousel-inner");
+  carouselInner.setAttribute("role", "list");
+  carouselInner.setAttribute("aria-label", "Available new books");
+  
+  // Make navigation buttons announce their action
+  const prevBtn = document.getElementById("prev-btn");
+  prevBtn?.addEventListener("click", () => {
+    announceToScreenReader("Showing previous items");
+  });
+  
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn?.addEventListener("click", () => {
+    announceToScreenReader("Showing next items");
+  });
+}
+
+// Helper function to announce messages to screen readers
+function announceToScreenReader(message) {
+  const liveRegion = document.getElementById("screen-reader-announcer");
+  if (liveRegion) {
+    liveRegion.textContent = message;
+  }
+}
+
+// Update your status update function to use the announcer
+function updateLoadingStatus(message) {
+  const floatingStatus = document.getElementById("floating-status");
+  if (floatingStatus) {
+    floatingStatus.textContent = message;
+  }
+  
+  // Also announce to screen readers
+  announceToScreenReader(message);
+}
+
+function moveCarouselPage(direction) {
+    const container = document.querySelector(".carousel-container");
+    const itemWidth = 160;
+    const visibleItems = Math.floor(container.clientWidth / itemWidth);
+    const scrollAmount = itemWidth * visibleItems * direction;
+    container.scrollLeft += scrollAmount;
+}
+
+// Populate month dropdown
+function populateMonthDropdown() {
+    const dropdown = document.getElementById("month-dropdown");
+    if (!dropdown) {
+        console.error("Dropdown element not found. Check HTML.");
+        return;
+    }
+    dropdown.innerHTML = ""; // Clear previous options
+    
+    // Add "All Books" option
+    const allOption = document.createElement("option");
+    allOption.value = "all";
+    allOption.textContent = "Most Recent Books";
+    dropdown.appendChild(allOption);
+    
+    // Add recent months
+    for (let i = 0; i < 12; i++) {
+        const monthCode = getCurrentNewBooksCode(i);
+        const option = document.createElement("option");
+        option.value = monthCode;
+        // Format the month display
+        const [_, month, year] = monthCode.match(/newbooks-(\d{2})-(\d{4})/);
+        const date = new Date(year, parseInt(month) - 1);
+        option.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        dropdown.appendChild(option);
+    }
+    
+    // Set "All Books" as default selected option
+    dropdown.value = 'all';
+}
+
+function changeMonth() {
+  const selectedMonth = document.getElementById("month-dropdown").value;
+  // Show skeleton loaders immediately
+  showSkeletonLoaders(12);
+  console.log(`Fetching books for: ${selectedMonth}`);
+  loadCarousel(selectedMonth); // Pass selected month to reload books
+}
+
+// Add this function outside other functions
+function handleCarouselError(error, container, statusElement) {
+  console.error("Carousel error:", error);
+  
+  // Create a user-friendly error display
+  const errorDisplay = document.createElement("div");
+  errorDisplay.className = "carousel-error";
+  errorDisplay.setAttribute("role", "alert");
+  errorDisplay.setAttribute("aria-live", "assertive");
+  
+  // Create different content based on error type
+  if (error.message && error.message.includes("Network")) {
+    // Network error
+    errorDisplay.innerHTML = `
+      <h3>Connection issue</h3>
+      <p>We couldn't connect to the library system. Please check your internet connection.</p>
+      <button id="retry-button" class="retry-button">Try Again</button>
+    `;
+  } else if (error.message && error.message.includes("Token")) {
+    // Authentication error
+    errorDisplay.innerHTML = `
+      <h3>Authentication issue</h3>
+      <p>We couldn't authenticate with the library system.</p>
+      <button id="retry-button" class="retry-button">Try Again</button>
+    `;
+  } else {
+    // Generic error
+    errorDisplay.innerHTML = `
+      <h3>Something went wrong</h3>
+      <p>We couldn't load the new books at this time.</p>
+      <button id="retry-button" class="retry-button">Try Again</button>
+    `;
+  }
+  
+  // Clear the container and add the error display
+  if (container) {
+    container.innerHTML = "";
+    container.appendChild(errorDisplay);
+  }
+  
+  // Hide the loading status
+  if (statusElement) {
+    statusElement.style.display = "none";
+  }
+  
+  // Announce the error to screen readers
+  announceToScreenReader("Error loading books. " + errorDisplay.textContent);
+  
+  // Add retry functionality
+  const retryButton = document.getElementById("retry-button");
+  if (retryButton) {
+    retryButton.addEventListener("click", () => {
+      // Get the current month selection
+      const monthDropdown = document.getElementById("month-dropdown");
+      const selectedMonth = monthDropdown ? monthDropdown.value : "all";
+      
+      // Reload the carousel
+      loadCarousel(selectedMonth);
+      
+      // Announce retry to screen readers
+      announceToScreenReader("Retrying to load books...");
+    });
+  }
+  
+  // Add some CSS for the error display
+  const style = document.createElement("style");
+  style.textContent = `
+    .carousel-error {
+      text-align: center;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .retry-button {
+      background: #2c5282;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .retry-button:hover {
+      background: #1a365d;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Add this function outside other functions
+function setupPerformanceOptimizations() {
+  // Create and manage intersection observer for lazy loading
+  const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bookItem = entry.target;
+        const lazyImage = bookItem.querySelector('[data-src]');
+        const lazyContent = bookItem.querySelector('[data-content]');
+        
+        // Handle lazy image loading
+        if (lazyImage) {
+          lazyImage.src = lazyImage.dataset.src;
+          lazyImage.removeAttribute('data-src');
+        }
+        
+        // Handle lazy content loading
+        if (lazyContent) {
+          lazyContent.innerHTML = lazyContent.dataset.content;
+          lazyContent.removeAttribute('data-content');
+        }
+        
+        // Stop observing this element
+        observer.unobserve(bookItem);
+      }
+    });
+  }, {
+    rootMargin: '100px' // Start loading when within 100px of viewport
+  });
+  
+  // Apply lazy loading observer to all carousel items
+  document.querySelectorAll('.carousel-item').forEach(item => {
+    lazyLoadObserver.observe(item);
+  });
+  
+  // Enable passive event listeners for touch events
+  const carousel = document.querySelector('.carousel-container');
+  if (carousel) {
+    carousel.addEventListener('touchstart', () => {}, { passive: true });
+    carousel.addEventListener('touchmove', () => {}, { passive: true });
+  }
+}
+
+// Enhance skeleton loader function
+function showSkeletonLoaders(count) {
+  const carouselInner = document.querySelector('.carousel-inner');
+  if (!carouselInner) return;
+  
+  carouselInner.innerHTML = '';
+  carouselInner.setAttribute('aria-busy', 'true');
+  
+  // Announce to screen readers
+  announceToScreenReader('Loading books, please wait...');
+  
+  for (let i = 0; i < count; i++) {
+    const skeletonItem = document.createElement('div');
+    skeletonItem.className = 'carousel-item skeleton-item';
+    skeletonItem.setAttribute('aria-hidden', 'true');
+    
+    // Create skeleton structure
+    skeletonItem.innerHTML = `
+      <div class="skeleton-image"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text short"></div>
+    `;
+    
+    // Add animation delay for staggered effect
+    skeletonItem.style.animationDelay = `${i * 0.1}s`;
+    carouselInner.appendChild(skeletonItem);
+  }
+  
+  // Add skeleton styles if not already present
+  if (!document.getElementById('skeleton-styles')) {
+    const skeletonStyle = document.createElement('style');
+    skeletonStyle.id = 'skeleton-styles';
+    skeletonStyle.textContent = `
+      @keyframes skeletonPulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 0.8; }
+        100% { opacity: 0.6; }
+      }
+      
+      .skeleton-item {
+        animation: skeletonPulse 1.5s ease-in-out infinite;
+      }
+      
+      .skeleton-image {
+        width: 100px;
+        height: 150px;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        margin: 0 auto;
+      }
+      
+      .skeleton-text {
+        height: 12px;
+        background-color: #e0e0e0;
+        border-radius: 2px;
+        margin: 8px 0;
+        width: 100%;
+      }
+      
+      .skeleton-text.short {
+        width: 70%;
+      }
+      
+      /* Respect reduced motion preference */
+      @media (prefers-reduced-motion: reduce) {
+        .skeleton-item {
+          animation: none;
+        }
+      }
+    `;
+    document.head.appendChild(skeletonStyle);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  populateMonthDropdown(); // Populate dropdown on page load
+  loadCarousel('all'); // Load all books by default
+});
+</script>
+</div>
+</body>
+</html>
